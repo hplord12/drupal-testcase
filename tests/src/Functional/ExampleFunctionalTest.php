@@ -69,7 +69,7 @@ class ExampleFunctionalTest extends BrowserTestBase {
   protected function setUp() {
     parent::setUp();
 
-    // Create users.
+    // Create admin user.
     $this->adminUser = $this->drupalCreateUser([
       'access administration pages',
       'view the administration theme',
@@ -77,6 +77,8 @@ class ExampleFunctionalTest extends BrowserTestBase {
       'administer nodes',
       'administer content types',
     ]);
+
+    // Create non admin user
     $this->authUser = $this->drupalCreateUser([], 'authuser');
 
     // We have to create a content type because testing uses the 'testing'
@@ -112,7 +114,7 @@ class ExampleFunctionalTest extends BrowserTestBase {
     );
     $this->createImageField('field_image', 'article');
 
-   //  Create link field.
+    //  Create link field.
     FieldStorageConfig::create([
       'field_name' => 'field_link',
       'entity_type' => 'node',
@@ -132,6 +134,22 @@ class ExampleFunctionalTest extends BrowserTestBase {
     ]);
     $field_config->save();
 
+
+    // Create role content editor which has article crud operation permissions.
+    $role = Role::create([
+        'id' => 'content_editor',
+        'name' => 'Contet Editor',
+        'permissions' => [
+          'create article content',
+          'edit any article content',
+          'delete any article content',
+          'access content',
+        ]
+    ]);
+    $role->save();
+
+    $this->authUser->addRole($role->id());
+    $this->authUser->save();
     // Cache clear.
     drupal_flush_all_caches();
   }
@@ -141,10 +159,14 @@ class ExampleFunctionalTest extends BrowserTestBase {
    */
   public function testNewPageApiCreate() {
     $assert = $this->assertSession();
-    $random = $this->getRandomGenerator(); 
+    $random = $this->getRandomGenerator();
 
     // Login as admin
-    $this->drupalLogin($this->adminUser);
+    // $this->drupalLogin($this->adminUser);
+
+    // Log in our normal user and navigate to the node.
+    $this->drupalLogin($this->authUser);
+
 
     $nodeTitle = 'Test node for testNewPageApiCreate';
 
@@ -172,7 +194,7 @@ class ExampleFunctionalTest extends BrowserTestBase {
       ['target_id' => 1]
     ];
 
-    
+
     $file = File::create([
         'uri' => 'vfs://' . $random->name() . '.png',
     ]);
