@@ -214,8 +214,8 @@ class ExampleFunctionalTest extends BrowserTestBase {
     $this->drupalGet($url);
     $assert->statusCodeEquals(200);
 
-    // Log in our normal user and navigate to the node.
-    $this->drupalLogin($this->authUser);
+    // Log as admin user and navigate to the node.
+    $this->drupalLogin($this->adminUser);
     $this->drupalGet($url);
     $assert->statusCodeEquals(200);
 
